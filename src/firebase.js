@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getDatabase } from 'firebase/database'
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 
 const firebaseConfig = {
   apiKey: "AIzaSyDYT9Ov0lJfEQ4osHd5_quGtg6x2ghsB7c",
@@ -14,4 +15,10 @@ const firebaseConfig = {
 export const CREATE_ROOM_GUID = '441fb449-1dbd-4520-b9c9-0a7b3aa42a9b'
 
 const app = initializeApp(firebaseConfig)
+
+initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('6LdtRJUsAAAAAJ2V8oIDbWZzEHTVGfsqcuDGeVkb'),
+  isTokenAutoRefreshEnabled: true
+})
+
 export const db = getDatabase(app)
