@@ -118,7 +118,7 @@
 
       <div class="actions" v-if="joinedSession">
         <button class="ghost" @click="copyRoomId">複製房號</button>
-        <button class="ghost" @click="copyRoomInfo" :disabled="!displayPassword">複製房號；密碼</button>
+        <button class="ghost" @click="copyRoomInfo" :disabled="!displayPassword">複製房號+密碼</button>
         <button class="ghost" @click="copyShareLink">複製房間連結</button>
         <button v-if="showPipButton" class="ghost" @click="togglePiP">{{ pipWindow ? '關閉懸浮視窗' : '懸浮視窗' }}</button>
         <button class="ghost" @click="leaveRoom">離開房間</button>

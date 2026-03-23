@@ -16,8 +16,12 @@ export const CREATE_ROOM_GUID = '441fb449-1dbd-4520-b9c9-0a7b3aa42a9b'
 
 const app = initializeApp(firebaseConfig)
 
+if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true
+}
+
 initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider('6LdtRJUsAAAAAJ2V8oIDbWZzEHTVGfsqcuDGeVkb'),
+  provider: new ReCaptchaV3Provider('6LfQXpUsAAAAAPAiARqqTdSRuAlIuUd8KL2aJnJc'),
   isTokenAutoRefreshEnabled: true
 })
 
