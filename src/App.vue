@@ -72,13 +72,23 @@
           <button
             v-for="room in rooms"
             :key="room"
-            :class="['room-btn', { active: myRoom === room }]"
+            :class="['room-btn', { active: myRoom === room, occupied: isRoomOccupied(room) && myRoom !== room }]"
             @click="setMyRoom(room)"
-            :disabled="!joinedSession"
+            :disabled="!joinedSession || (isRoomOccupied(room) && myRoom !== room)"
           >
             {{ room }} 號房
+            <span v-if="isRoomOccupied(room) && myRoom !== room">（已被選）</span>
+          </button>
+          <button
+            v-if="joinedSession && myRoom"
+            class="ghost"
+            type="button"
+            @click="clearMyRoomSelection"
+          >
+            取消選取房號
           </button>
         </div>
+        <p class="mini-hint">每個房號同時間只能有一人選取；選錯可取消後重選。</p>
       </div>
 
       <div class="status-grid" v-if="joinedSession">
@@ -108,11 +118,11 @@
 
       <div class="actions" v-if="joinedSession">
         <button class="ghost" @click="copyRoomId">複製房號</button>
-        <button class="ghost" @click="copyRoomInfo" :disabled="!displayPassword">複製房號+密碼</button>
+        <button class="ghost" @click="copyRoomInfo" :disabled="!displayPassword">複製房號；密碼</button>
         <button class="ghost" @click="copyShareLink">複製房間連結</button>
         <button v-if="showPipButton" class="ghost" @click="togglePiP">{{ pipWindow ? '關閉懸浮視窗' : '懸浮視窗' }}</button>
         <button class="ghost" @click="leaveRoom">離開房間</button>
-        <button class="danger" @click="handleClearMain" :disabled="!isOwner">清除全部</button>
+        <button class="danger" @click="clearAll" :disabled="!isOwner">清除全部</button>
       </div>
 
       <p class="hint" v-if="joinedSession && !myRoom">請先選擇你是哪一間房，才可以點台階。</p>
@@ -218,6 +228,15 @@ let pipMounted = false
 const myColor = computed(() => colorMap.find((item) => item.room === myRoom.value))
 const isOwner = computed(() => Boolean(hostKey.value) && hostKey.value === sessionData.value.hostKey)
 const displayPassword = computed(() => sessionData.value.password || '')
+const occupiedRooms = computed(() => {
+  const taken = new Set()
+  const participants = sessionData.value.participants || {}
+  Object.entries(participants).forEach(([id, participant]) => {
+    const room = Number(participant?.room || 0)
+    if (id !== clientId && room >= 1 && room <= 4) taken.add(room)
+  })
+  return taken
+})
 
 function defaultSessionData() {
   return {
@@ -337,7 +356,8 @@ async function registerPresence(roomId) {
   const targetRef = participantPath(roomId, clientId)
   await set(targetRef, {
     clientId,
-    joinedAt: Date.now()
+    joinedAt: Date.now(),
+    room: 0
   })
   const disconnectHandler = onDisconnect(targetRef)
   disconnectHandler.remove()
@@ -500,14 +520,92 @@ function bindUsageStats() {
   })
 }
 
-function setMyRoom(room) {
+async function setMyRoom(room) {
   if (!joinedSession.value) return
-  if (myRoom.value && myRoom.value !== room) {
-    const ok = window.confirm(`你目前是 ${myRoom.value} 號房，確定要改成 ${room} 號房嗎？`)
-    if (!ok) return
+  if (myRoom.value === room) return
+
+  if (myRoom.value >= 1 && myRoom.value <= 4) {
+    const confirmed = window.confirm(`你目前已選擇 ${myRoom.value} 號房，確定要改成 ${room} 號房嗎？`)
+    if (!confirmed) return
   }
+
+  let occupiedByOther = false
+  const result = await runTransaction(sessionPath(sessionId.value), (current) => {
+    if (current === null) return current
+
+    const participants = { ...(current.participants || {}) }
+    const mine = participants[clientId] || { clientId, joinedAt: Date.now(), room: 0 }
+
+    const targetTaken = Object.entries(participants).some(([id, participant]) => {
+      return id !== clientId && Number(participant?.room || 0) === room
+    })
+
+    if (targetTaken) {
+      occupiedByOther = true
+      return current
+    }
+
+    participants[clientId] = {
+      ...mine,
+      clientId,
+      joinedAt: mine.joinedAt || Date.now(),
+      room
+    }
+
+    return {
+      ...current,
+      participants,
+      updatedAt: Date.now()
+    }
+  })
+
+  if (occupiedByOther) {
+    alert(`${room} 號房已經被其他隊員選走了。`)
+    return
+  }
+
+  if (!result.committed) {
+    alert('選取房號失敗，請再試一次。')
+    return
+  }
+
   myRoom.value = room
   localStorage.setItem('rjpq-my-room', String(room))
+}
+
+async function clearMyRoomSelection() {
+  if (!joinedSession.value) return
+
+  const result = await runTransaction(sessionPath(sessionId.value), (current) => {
+    if (current === null) return current
+
+    const participants = { ...(current.participants || {}) }
+    const mine = participants[clientId]
+    if (!mine) return current
+
+    participants[clientId] = {
+      ...mine,
+      room: 0
+    }
+
+    return {
+      ...current,
+      participants,
+      updatedAt: Date.now()
+    }
+  })
+
+  if (!result.committed) {
+    alert('取消房號失敗，請再試一次。')
+    return
+  }
+
+  myRoom.value = 0
+  localStorage.removeItem('rjpq-my-room')
+}
+
+function isRoomOccupied(room) {
+  return occupiedRooms.value.has(room)
 }
 
 function selectedBy(level, step) {
@@ -577,20 +675,17 @@ async function toggleStep(level, step) {
   }
 }
 
-async function clearAssignmentsDirect() {
-  if (!sessionId.value || !isOwner.value) return false
+async function clearAll(skipConfirm = false) {
+  if (!sessionId.value || !isOwner.value) return
+  if (!skipConfirm) {
+    const ok = window.confirm('確定要清除這個房間的全部台階紀錄嗎？')
+    if (!ok) return
+  }
+
   await update(sessionPath(sessionId.value), {
     assignments: {},
     updatedAt: Date.now()
   })
-  return true
-}
-
-async function handleClearMain() {
-  if (!sessionId.value || !isOwner.value) return
-  const ok = window.confirm('確定要清除這個房間的全部台階紀錄嗎？')
-  if (!ok) return
-  await clearAssignmentsDirect()
 }
 
 async function internalLeaveRoom(showAlert = true) {
@@ -687,7 +782,7 @@ function closePiP() {
 function createPiPHtml() {
   const roomBadge = myRoom.value ? `${myRoom.value} 號房` : '未選房'
   const clearButton = isOwner.value
-    ? '<button class="pip-clear" id="pip-clear-btn" type="button">清除全部</button>'
+    ? '<button class="pip-clear" id="pip-clear-btn">清除全部</button>'
     : ''
 
   const rows = floors.map((floor) => {
@@ -841,16 +936,7 @@ function mountPiPContents(targetWindow) {
       clearBtn.onclick = async (event) => {
         event.preventDefault()
         event.stopPropagation()
-        clearBtn.disabled = true
-        try {
-          if (typeof window !== 'undefined' && typeof window.__rjpqClearAssignmentsDirect === 'function') {
-            await window.__rjpqClearAssignmentsDirect()
-          } else {
-            await clearAssignmentsDirect()
-          }
-        } finally {
-          clearBtn.disabled = false
-        }
+        await clearAll(true)
       }
     }
   }
@@ -894,10 +980,15 @@ function handleBeforeUnload() {
   leavePresence()
 }
 
-
 watch([sessionData, myRoom, isOwner], () => {
-  if (typeof window !== 'undefined') {
-    window.__rjpqClearAssignmentsDirect = clearAssignmentsDirect
+  const roomFromSession = Number(sessionData.value.participants?.[clientId]?.room || 0)
+  if (roomFromSession !== myRoom.value) {
+    myRoom.value = roomFromSession
+    if (roomFromSession) {
+      localStorage.setItem('rjpq-my-room', String(roomFromSession))
+    } else {
+      localStorage.removeItem('rjpq-my-room')
+    }
   }
   updatePiP()
 }, { deep: true })
@@ -911,7 +1002,6 @@ onMounted(async () => {
   bindUsageStats()
   await purgeExpiredRooms()
   cleanupInterval = window.setInterval(purgeExpiredRooms, 60 * 1000)
-  window.__rjpqClearAssignmentsDirect = clearAssignmentsDirect
   window.addEventListener('beforeunload', handleBeforeUnload)
 })
 
@@ -924,12 +1014,8 @@ onBeforeUnmount(async () => {
     window.clearInterval(cleanupInterval)
     cleanupInterval = null
   }
-  if (typeof window !== 'undefined') {
-    delete window.__rjpqClearAssignmentsDirect
-  }
   window.removeEventListener('beforeunload', handleBeforeUnload)
 })
-
 </script>
 
 <style scoped>
