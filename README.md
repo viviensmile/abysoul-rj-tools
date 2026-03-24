@@ -1,93 +1,98 @@
-# 🌸 楓之谷 - 羅密歐與茱麗葉 協作工具
-> by Sakuta | AbySoul 公會專用
+# 🌸 MapleStory - Romeo & Juliet Coordination Tool
 
-一個為《楓之谷 Artale》羅密歐與茱麗葉副本打造的  
-**即時台階解謎協作工具**
-
-讓四人小隊不用再用喊的、亂猜，  
-直接同步結果，快速通關 ✨
+A real-time coordination tool for solving the Romeo & Juliet PQ puzzle in MapleStory Artale.
 
 ---
 
-## ✨ 功能特色
+## ✨ Overview
 
-- 🔢 支援 10 層台階解謎
-- 👥 4 人即時同步（不同房間也看得到）
-- 🎨 房間顏色區分（不會搞混）
-- 🚫 已選台階會鎖定，避免重複嘗試
-- 🔁 點擊可取消 / 更換選擇
-- 🧹 隊長可一鍵清除全部
-- ⏳ 閒置 20 分鐘自動失效
-- 🔐 房號 + 密碼進房機制
-- 📋 一鍵複製房間資訊
-- 🪟 懸浮視窗（遊戲中也能用）
+A lightweight, real-time collaboration tool designed to solve the  
+**Romeo & Juliet platform puzzle** efficiently.
+
+No more guessing. No more shouting.  
+Just sync, mark, and clear — together ✨
 
 ---
 
-## 🚀 使用方式
+## 🚀 Live Demo
 
-1. 建立房間（輸入 GUID）
-2. 分享房號 + 密碼給隊友
-3. 每人選擇自己的房間（顏色）
-4. 點擊台階標記
-5. 協作找出正確路徑
+https://viviensmile.github.io/abysoul-rj-tools/
 
 ---
 
-## 🧠 運作原理
+## ✨ Features
 
-- 使用 Firebase Realtime Database
-- 所有玩家操作即時同步
-- 無需登入、無需下載
-
----
-
-## 🔐 安全設計
-
-- Firebase Rules 限制資料格式
-- App Check 防止外部濫用
-- GUID 控制建房權限
-- 無後端、無敏感資料
+- 🔢 Supports 10-step platform puzzle
+- 👥 Real-time synchronization for 4 players
+- 🎨 Color-based player identification
+- 🚫 Prevents duplicate selections
+- 🔁 Click to toggle / adjust selections
+- 🧹 Leader can reset all steps instantly
+- ⏳ Auto-expire inactive rooms (20 mins)
+- 📋 One-click room info sharing
+- 🪟 Floating window support (Document PiP)
 
 ---
 
-## ⚠️ 注意事項
+## 🧠 How It Works
 
-- 懸浮視窗僅支援 Chromium（Chrome / Edge）
-- Firefox 不支援懸浮模式
-- 請勿惡意建立大量房間（會被 Sakuta 盯上）
+- Powered by Firebase Realtime Database
+- All player actions are synced instantly
+- No login or installation required
+- Fully client-side deployment
 
 ---
 
-## 🛠️ 技術棧
+## 🔒 Security
+
+- Firebase Rules enforce data validation
+- App Check helps reduce unauthorized access
+- No sensitive user data is stored
+
+---
+
+## ⚠️ Notes
+
+- Floating window requires Chromium-based browsers (Chrome / Edge)
+- Firefox and Safari do not support PiP mode
+- Please avoid excessive room creation 🙏
+
+---
+
+## 🛠️ Technology Stack
 
 - Vue 3 + Vite
 - Firebase Realtime Database
+- Firebase App Check (reCAPTCHA v3)
 - GitHub Pages
 
 ---
 
-## 💬 關於這個工具
+## 💬 About
 
-這不是什麼大型服務，  
-只是為了讓 AbySoul 公會打副本更順手而誕生的小工具。
+This tool was originally built for smoother coordination  
+within the AbySoul guild.
 
-如果你剛好用到了，也希望它能幫助你少走幾次錯路。
+If it helps your team as well — that's even better.
 
 ---
 
 ## 🌙 AbySoul
 
-一個歡迎聊天、打本、耍廢、亂鬧的地方。  
-不一定要加入，只要你願意一起玩。
+A place to chat, raid, chill, and occasionally do something chaotic.
+
+No pressure to join — just come play.
 
 ---
 
-## 🐾 作者
+## 🐾 Author
 
-Sakuta  
-（偶爾寫工具，大部分時間在發呆）
+**Sakuta**
+
+Occasionally builds tools.  
+Mostly just chilling.
 
 ---
 
-> 「有些路，一個人會迷路，但四個人就能找到出口。」
+> "Some paths are confusing alone,  
+but with four people, you'll always find the way."
