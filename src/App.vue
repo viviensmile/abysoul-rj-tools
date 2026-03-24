@@ -2,7 +2,6 @@
   <div class="app-shell">
     <header class="hero card">
       <div>
-        <p class="eyebrow">作者 Sakuta</p>
         <h1>楓之谷 - 羅密歐與茱麗葉 工具</h1>
         <p class="sub">AbySoul 公會副本小幫手，一起把試錯整理得更快一點 ✨</p>
       </div>
@@ -171,6 +170,10 @@
     <div class="usage-pill">
       目前使用中：{{ usageStats.activeRooms }} 組 / {{ MAX_ACTIVE_ROOMS }} 組；{{ usageStats.activeUsers }} 人 / {{ MAX_ACTIVE_USERS }} 人
     </div>
+
+    <footer class="brand-signature" aria-label="頁尾簽名">
+      © 2026 Sakuta • Crafted with ☕ &amp; chaos • AbySoul
+    </footer>
   </div>
 </template>
 
@@ -1029,8 +1032,11 @@ onBeforeUnmount(async () => {
 
 .app-shell {
   max-width: 1100px;
+  min-height: 100vh;
   margin: 0 auto;
-  padding: 24px;
+  padding: 24px 24px 72px;
+  display: flex;
+  flex-direction: column;
 }
 
 .card {
@@ -1046,12 +1052,6 @@ onBeforeUnmount(async () => {
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  color: #6366f1;
-  font-weight: 700;
 }
 
 h1, h2 { margin: 0 0 10px; }
@@ -1223,6 +1223,31 @@ button:disabled { cursor: not-allowed; opacity: 0.5; transform: none; }
 .step-index { font-size: 20px; }
 .step-room { font-size: 13px; font-weight: 700; }
 
+
+.brand-signature {
+  margin-top: auto;
+  padding: 18px 6px 4px;
+  text-align: right;
+  align-self: stretch;
+  color: #7c86b2;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-shadow:
+    0 0 8px rgba(99, 102, 241, 0.22),
+    0 0 18px rgba(56, 189, 248, 0.12);
+  opacity: 0.92;
+}
+
+.brand-signature::before {
+  content: '';
+  display: block;
+  width: min(320px, 42vw);
+  height: 1px;
+  margin: 0 0 12px auto;
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0), rgba(99, 102, 241, 0.42), rgba(56, 189, 248, 0.78));
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.22);
+}
+
 .usage-pill {
   position: fixed;
   right: 16px;
@@ -1237,9 +1262,18 @@ button:disabled { cursor: not-allowed; opacity: 0.5; transform: none; }
 }
 
 @media (max-width: 720px) {
-  .app-shell { padding: 14px; }
+  .app-shell { padding: 14px 14px 88px; }
   .hero { flex-direction: column; }
   .floor-row { grid-template-columns: 1fr; gap: 8px; }
+  .brand-signature {
+    padding: 20px 2px 6px;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+  .brand-signature::before {
+    width: min(220px, 58vw);
+    margin-bottom: 10px;
+  }
   .usage-pill {
     left: 12px;
     right: 12px;
